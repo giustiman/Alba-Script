@@ -2,14 +2,21 @@
 include 'config.php';
 
 $c = curl_init();
+$token = readToken();
 
-$payload = [
-    "email" => "cristobal.giusti@gmail.com",
-    "password" => "chupaman",
-];
+// Verificar si el token es válido, si no, hacer login
+if (!$token || !isTokenValid($c, $token))
+{
+    $payload = [
+        "email" => "easycancha.v1@gmail.com",
+        "password" => "chupaman",
+    ];
 
-$q = geturl($c, 'https://www.easycancha.com/api/login', json_encode($payload));
-$token = json_decode($q, true)["token"];
+    $q = geturl($c, 'https://www.easycancha.com/api/login', json_encode($payload));
+    $token = json_decode($q, true)["token"];
+    saveToken($token);
+}
+
 $dates = getNextSevenDays();
 $result = [];
 

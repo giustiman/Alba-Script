@@ -97,6 +97,34 @@
             margin: 5px;
             display: inline-block;
         }
+
+        .notify-button,
+        .stop-button {
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .notify-button {
+            background-color: green;
+        }
+
+        .notify-button:hover {
+            background-color: darkgreen;
+        }
+
+        .stop-button {
+            background-color: red;
+            margin-left: 10px;
+        }
+
+        .stop-button:hover {
+            background-color: darkred;
+        }
     </style>
 </head>
 
@@ -114,20 +142,16 @@
             const resultsDiv = document.getElementById('results');
             const mainContainer = document.getElementById('main-container');
 
-            // Mostrar la imagen de carga
             loadingImage.style.display = 'block';
 
             fetch('alba.php')
                 .then(response => response.json())
                 .then(data => {
-                    // Ocultar la imagen de carga
                     loadingImage.style.display = 'none';
-
-                    // Cambiar la alineación del contenedor principal
                     document.body.classList.add('results-loaded');
                     mainContainer.classList.add('results-loaded');
 
-                    resultsDiv.innerHTML = ''; // Limpiar resultados previos
+                    resultsDiv.innerHTML = '';
                     const hoursByDate = data['horas disponibles'];
                     for (const [date, hours] of Object.entries(hoursByDate)) {
                         const dateGroup = document.createElement('div');
@@ -143,24 +167,77 @@
                             dateGroup.appendChild(hourElement);
                         });
 
-                        // Añadir botón verde
                         const notifyButton = document.createElement('button');
                         notifyButton.className = 'notify-button';
                         notifyButton.textContent = 'Notificarme';
                         notifyButton.style.backgroundColor = 'green';
-                        notifyButton.onclick = () => startMonitoring(date);
+                        notifyButton.onclick = () => {
+                            startMonitoring(date);
+                            notifyButton.style.display = 'none';
+                            stopButton.style.display = 'inline-block';
+                        };
                         dateGroup.appendChild(notifyButton);
+
+                        const stopButton = document.createElement('button');
+                        stopButton.className = 'stop-button';
+                        stopButton.textContent = 'Detener Monitoreo';
+                        stopButton.style.backgroundColor = 'red';
+                        stopButton.style.display = 'none';
+                        stopButton.onclick = () => {
+                            stopMonitoring(date);
+                            stopButton.style.display = 'none';
+                            notifyButton.style.display = 'inline-block';
+                        };
+                        dateGroup.appendChild(stopButton);
 
                         resultsDiv.appendChild(dateGroup);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    // Ocultar la imagen de carga en caso de error
                     loadingImage.style.display = 'none';
                 });
         }
 
+        const monitoringIntervals = {};
+
+        function startMonitoring(date) {
+            const interval = 60000; // Intervalo de 1 minuto (60000 ms)
+            const phoneNumber = '+56990783138';
+
+            const intervalId = setInterval(() => {
+                fetch('alba.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        const hoursByDate = data['horas disponibles'];
+                        if (hoursByDate[date] && hoursByDate[date].length > 0) {
+                            clearInterval(intervalId);
+                            delete monitoringIntervals[date];
+                            sendWhatsAppMessage(phoneNumber, `Hay horas disponibles para la fecha ${date}: ${hoursByDate[date].join(', ')}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }, interval);
+
+            monitoringIntervals[date] = intervalId;
+        }
+
+        function stopMonitoring(date) {
+            if (monitoringIntervals[date]) {
+                clearInterval(monitoringIntervals[date]);
+                delete monitoringIntervals[date];
+                console.log(`Monitoreo detenido para la fecha ${date}`);
+            } else {
+                console.log(`No hay monitoreo activo para la fecha ${date}`);
+            }
+        }
+
+        function sendWhatsAppMessage(phoneNumber, message) {
+            const url = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        }
 
     </script>
 </body>
