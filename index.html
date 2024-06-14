@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alba-Script</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            transition: justify-content 0.3s;
+        }
+
+        body.results-loaded {
+            justify-content: flex-start;
+            /* Alineación superior cuando se cargan los resultados */
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container.results-loaded {
+            height: auto;
+            margin-top: 20px;
+            /* Ajustar según sea necesario */
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 20px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #loading {
+            display: none;
+            margin-top: 20px;
+            width: 50px;
+            height: 50px;
+        }
+
+        #results {
+            width: 80%;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .date-group {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+
+        .date-group h2 {
+            margin: 0;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .hour {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            margin: 5px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="main-container">
+        <h1>Alba-Script</h1>
+        <button onclick="consultarCanchas()">Consultar Canchas Disponibles</button>
+        <img id="loading" src="loading.gif" alt="Cargando...">
+    </div>
+    <div id="results"></div>
+
+    <script>
+        function consultarCanchas() {
+            const loadingImage = document.getElementById('loading');
+            const resultsDiv = document.getElementById('results');
+            const mainContainer = document.getElementById('main-container');
+
+            // Mostrar la imagen de carga
+            loadingImage.style.display = 'block';
+
+            fetch('alba.php')
+                .then(response => response.json())
+                .then(data => {
+                    // Ocultar la imagen de carga
+                    loadingImage.style.display = 'none';
+
+                    // Cambiar la alineación del contenedor principal
+                    document.body.classList.add('results-loaded');
+                    mainContainer.classList.add('results-loaded');
+
+                    resultsDiv.innerHTML = ''; // Limpiar resultados previos
+                    const hoursByDate = data['horas disponibles'];
+                    for (const [date, hours] of Object.entries(hoursByDate)) {
+                        const dateGroup = document.createElement('div');
+                        dateGroup.className = 'date-group';
+                        const dateTitle = document.createElement('h2');
+                        dateTitle.textContent = date;
+                        dateGroup.appendChild(dateTitle);
+
+                        hours.forEach(hour => {
+                            const hourElement = document.createElement('div');
+                            hourElement.className = 'hour';
+                            hourElement.textContent = hour;
+                            dateGroup.appendChild(hourElement);
+                        });
+
+                        // Añadir botón verde
+                        const notifyButton = document.createElement('button');
+                        notifyButton.className = 'notify-button';
+                        notifyButton.textContent = 'Notificarme';
+                        notifyButton.style.backgroundColor = 'green';
+                        notifyButton.onclick = () => startMonitoring(date);
+                        dateGroup.appendChild(notifyButton);
+
+                        resultsDiv.appendChild(dateGroup);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Ocultar la imagen de carga en caso de error
+                    loadingImage.style.display = 'none';
+                });
+        }
+
+
+    </script>
+</body>
+
+</html>
