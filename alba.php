@@ -8,7 +8,7 @@ $token = readToken();
 if (!$token || !isTokenValid($c, $token))
 {
     $payload = [
-        "email" => "easycancha.v1@gmail.com",
+        "email" => "easycancha.v2@gmail.com",
         "password" => "chupaman",
     ];
 

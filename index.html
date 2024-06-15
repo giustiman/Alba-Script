@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alba-Script</title>
+    <title>Canchas Alba</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -99,16 +99,6 @@
         }
 
         .notify-button,
-        .stop-button {
-            padding: 10px 20px;
-            font-size: 1em;
-            border: none;
-            border-radius: 5px;
-            color: white;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
         .notify-button {
             background-color: green;
         }
@@ -117,26 +107,54 @@
             background-color: darkgreen;
         }
 
-        .stop-button {
-            background-color: red;
-            margin-left: 10px;
+        /* Estilos para el cuadro de diálogo */
+        #emailDialog {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
-        .stop-button:hover {
-            background-color: darkred;
+        #emailDialog select {
+            padding: 10px;
+            font-size: 1em;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        #emailDialog button {
+            width: 100%;
         }
     </style>
 </head>
 
 <body>
     <div class="container" id="main-container">
-        <h1>Alba-Script</h1>
+        <h1>Canchas Alba</h1>
         <button onclick="consultarCanchas()">Consultar Canchas Disponibles</button>
         <img id="loading" src="loading.gif" alt="Cargando...">
     </div>
     <div id="results"></div>
 
+    <!-- Cuadro de diálogo para seleccionar el correo -->
+    <div id="emailDialog">
+        <select id="emailSelect">
+            <option value="cristobal.giusti@gmail.com">cristobal.giusti@gmail.com</option>
+            <option value="tomas.valverde@gmail.com">tomas.valverde@gmail.com</option>
+        </select>
+        <button id="selectEmailButton">Seleccionar</button>
+    </div>
+
     <script>
+        let currentNotifyButton = null;
+        let currentDate = null;
+
         function consultarCanchas() {
             const loadingImage = document.getElementById('loading');
             const resultsDiv = document.getElementById('results');
@@ -172,23 +190,9 @@
                         notifyButton.textContent = 'Notificarme';
                         notifyButton.style.backgroundColor = 'green';
                         notifyButton.onclick = () => {
-                            startMonitoring(date);
-                            notifyButton.style.display = 'none';
-                            stopButton.style.display = 'inline-block';
+                            showEmailDialog(date, notifyButton);
                         };
                         dateGroup.appendChild(notifyButton);
-
-                        const stopButton = document.createElement('button');
-                        stopButton.className = 'stop-button';
-                        stopButton.textContent = 'Detener Monitoreo';
-                        stopButton.style.backgroundColor = 'red';
-                        stopButton.style.display = 'none';
-                        stopButton.onclick = () => {
-                            stopMonitoring(date);
-                            stopButton.style.display = 'none';
-                            notifyButton.style.display = 'inline-block';
-                        };
-                        dateGroup.appendChild(stopButton);
 
                         resultsDiv.appendChild(dateGroup);
                     }
@@ -199,12 +203,21 @@
                 });
         }
 
-        const monitoringIntervals = {};
+        function showEmailDialog(date, notifyButton) {
+            currentDate = date;
+            currentNotifyButton = notifyButton;
+            document.getElementById('emailDialog').style.display = 'block';
+        }
 
-        function startMonitoring(date) {
+        document.getElementById('selectEmailButton').onclick = () => {
+            const selectedEmail = document.getElementById('emailSelect').value;
+            document.getElementById('emailDialog').style.display = 'none';
+            startMonitoring(currentDate, selectedEmail);
+            currentNotifyButton.style.display = 'none';
+        };
+
+        function startMonitoring(date, emailAddress) {
             const interval = 60000; // Intervalo de 1 minuto (60000 ms)
-            const phoneNumber = '+56990783138';
-
             const intervalId = setInterval(() => {
                 fetch('alba.php')
                     .then(response => response.json())
@@ -212,33 +225,35 @@
                         const hoursByDate = data['horas disponibles'];
                         if (hoursByDate[date] && hoursByDate[date].length > 0) {
                             clearInterval(intervalId);
-                            delete monitoringIntervals[date];
-                            sendWhatsAppMessage(phoneNumber, `Hay horas disponibles para la fecha ${date}: ${hoursByDate[date].join(', ')}`);
+                            sendEmail(emailAddress, `Disponibilidad para la fecha ${date}`, `Hay horas disponibles para la fecha ${date}: ${hoursByDate[date].join(', ')}`);
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
                     });
             }, interval);
-
-            monitoringIntervals[date] = intervalId;
         }
 
-        function stopMonitoring(date) {
-            if (monitoringIntervals[date]) {
-                clearInterval(monitoringIntervals[date]);
-                delete monitoringIntervals[date];
-                console.log(`Monitoreo detenido para la fecha ${date}`);
-            } else {
-                console.log(`No hay monitoreo activo para la fecha ${date}`);
-            }
+        function sendEmail(to, subject, message) {
+            fetch('send_email.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    to: to,
+                    subject: subject,
+                    message: message
+                })
+            })
+                .then(response => response.text())
+                .then(result => {
+                    console.log('Correo enviado:', result);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
         }
-
-        function sendWhatsAppMessage(phoneNumber, message) {
-            const url = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
-            window.open(url, '_blank');
-        }
-
     </script>
 </body>
 
