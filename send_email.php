@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
     else
     {
         $userName = 'tomas.valverde@gmail.com';
-        $pass = '';
+        $pass = 'menrzbuwfmonxryn';
     }
     $subject = $_POST['subject'];
     $message = $_POST['message'];
