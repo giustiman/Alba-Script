@@ -100,19 +100,6 @@ button:hover {
 }
 
 /* Estilos para el cuadro de diálogo */
-#emailDialog {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
 #emailDialog select {
     padding: 10px;
     font-size: 1em;
@@ -124,13 +111,15 @@ button:hover {
     width: 100%;
 }
 
-#emailDialog .close-button {
-    background-color: red;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
-    float: right;
+#selectEmailButton,
+#notifyAnyHourButton,
+#notifySpecificHourButton {
+    margin-top: 10px;
+}
+
+#specificHourSelect {
+    display: none;
+    margin-top: 10px;
 }
 
 #emailDialog {
@@ -146,6 +135,11 @@ button:hover {
     z-index: 1000;
 }
 
-#selectEmailButton {
+#emailDialog .close-button {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
     margin-top: 10px;
 }

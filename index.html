@@ -22,6 +22,26 @@
             <option value="cristobal.giusti@gmail.com">cristobal.giusti@gmail.com</option>
             <option value="tomas.valverde@gmail.com">tomas.valverde@gmail.com</option>
         </select>
+        <button id="notifyAnyHourButton">Avisar si se desocupa cualquier hora</button>
+        <button id="notifySpecificHourButton">Avisar cuando se desocupe una hora específica</button>
+        <select id="specificHourSelect" multiple>
+            <!-- Opciones de horas desde las 08:00:00 hasta las 22:00:00 -->
+            <option value="08:00:00">08:00:00</option>
+            <option value="09:00:00">09:00:00</option>
+            <option value="10:00:00">10:00:00</option>
+            <option value="11:00:00">11:00:00</option>
+            <option value="12:00:00">12:00:00</option>
+            <option value="13:00:00">13:00:00</option>
+            <option value="14:00:00">14:00:00</option>
+            <option value="15:00:00">15:00:00</option>
+            <option value="16:00:00">16:00:00</option>
+            <option value="17:00:00">17:00:00</option>
+            <option value="18:00:00">18:00:00</option>
+            <option value="19:00:00">19:00:00</option>
+            <option value="20:00:00">20:00:00</option>
+            <option value="21:00:00">21:00:00</option>
+            <option value="22:00:00">22:00:00</option>
+        </select>
         <button id="selectEmailButton">Seleccionar</button>
         <button class="close-button" onclick="closeEmailDialog()">Cerrar</button>
     </div>
@@ -29,6 +49,7 @@
     <script>
         let currentNotifyButton = null;
         let currentDate = null;
+        let notifyAnyHour = true;
 
         function consultarCanchas() {
             const loadingImage = document.getElementById('loading');
@@ -60,16 +81,14 @@
                             dateGroup.appendChild(hourElement);
                         });
 
-                        if (hours.length === 0) {
-                            const notifyButton = document.createElement('button');
-                            notifyButton.className = 'notify-button';
-                            notifyButton.textContent = 'Notificarme';
-                            notifyButton.style.backgroundColor = 'green';
-                            notifyButton.onclick = () => {
-                                showEmailDialog(date, notifyButton);
-                            };
-                            dateGroup.appendChild(notifyButton);
-                        }
+                        const notifyButton = document.createElement('button');
+                        notifyButton.className = 'notify-button';
+                        notifyButton.textContent = 'Notificarme';
+                        notifyButton.style.backgroundColor = 'green';
+                        notifyButton.onclick = () => {
+                            showEmailDialog(date, notifyButton);
+                        };
+                        dateGroup.appendChild(notifyButton);
 
                         resultsDiv.appendChild(dateGroup);
                     }
@@ -84,16 +103,33 @@
             currentDate = date;
             currentNotifyButton = notifyButton;
             document.getElementById('emailDialog').style.display = 'block';
+            document.getElementById('specificHourSelect').style.display = 'none';
+            notifyAnyHour = true;
         }
 
         function closeEmailDialog() {
             document.getElementById('emailDialog').style.display = 'none';
         }
 
+        document.getElementById('notifyAnyHourButton').onclick = () => {
+            notifyAnyHour = true;
+            document.getElementById('specificHourSelect').style.display = 'none';
+        };
+
+        document.getElementById('notifySpecificHourButton').onclick = () => {
+            notifyAnyHour = false;
+            document.getElementById('specificHourSelect').style.display = 'block';
+        };
+
         document.getElementById('selectEmailButton').onclick = () => {
             const selectedEmail = document.getElementById('emailSelect').value;
+            const selectedHours = Array.from(document.getElementById('specificHourSelect').selectedOptions).map(option => option.value);
             document.getElementById('emailDialog').style.display = 'none';
-            startMonitoring(currentDate, selectedEmail);
+            if (notifyAnyHour) {
+                startMonitoring(currentDate, selectedEmail);
+            } else {
+                startMonitoringSpecificHours(currentDate, selectedHours, selectedEmail);
+            }
             currentNotifyButton.style.display = 'none';
         };
 
@@ -107,6 +143,29 @@
                         if (hoursByDate[date] && hoursByDate[date].length > 0) {
                             clearInterval(intervalId);
                             sendEmail(emailAddress, `Disponibilidad para la fecha ${date}`, `Hay horas disponibles para la fecha ${date}: ${hoursByDate[date].join(', ')}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }, interval);
+        }
+
+        function startMonitoringSpecificHours(date, hours, emailAddress) {
+            const interval = 60000; // Intervalo de 1 minuto (60000 ms)
+            const intervalId = setInterval(() => {
+                fetch('alba.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        const hoursByDate = data['horas disponibles'];
+                        if (hoursByDate[date]) {
+                            for (let hour of hours) {
+                                if (hoursByDate[date].includes(hour)) {
+                                    clearInterval(intervalId);
+                                    sendEmail(emailAddress, `Disponibilidad para la fecha ${date}`, `Hay una hora disponible para la fecha ${date}: ${hour}`);
+                                    break;
+                                }
+                            }
                         }
                     })
                     .catch(error => {
