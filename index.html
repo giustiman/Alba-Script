@@ -5,133 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Canchas Alba</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            background-color: #f0f0f0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            transition: justify-content 0.3s;
-        }
-
-        body.results-loaded {
-            justify-content: flex-start;
-            /* Alineación superior cuando se cargan los resultados */
-        }
-
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-
-        .container.results-loaded {
-            height: auto;
-            margin-top: 20px;
-            /* Ajustar según sea necesario */
-        }
-
-        h1 {
-            font-size: 2.5em;
-            margin: 20px 0;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 1em;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-bottom: 20px;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        #loading {
-            display: none;
-            margin-top: 20px;
-            width: 50px;
-            height: 50px;
-        }
-
-        #results {
-            width: 80%;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .date-group {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
-        }
-
-        .date-group h2 {
-            margin: 0;
-            margin-bottom: 10px;
-            font-size: 1.5em;
-        }
-
-        .hour {
-            padding: 5px 10px;
-            background-color: #007bff;
-            color: white;
-            border-radius: 5px;
-            margin: 5px;
-            display: inline-block;
-        }
-
-        .notify-button,
-        .notify-button {
-            background-color: green;
-        }
-
-        .notify-button:hover {
-            background-color: darkgreen;
-        }
-
-        /* Estilos para el cuadro de diálogo */
-        #emailDialog {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        #emailDialog select {
-            padding: 10px;
-            font-size: 1em;
-            margin-bottom: 20px;
-            width: 100%;
-        }
-
-        #emailDialog button {
-            width: 100%;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -185,14 +59,16 @@
                             dateGroup.appendChild(hourElement);
                         });
 
-                        const notifyButton = document.createElement('button');
-                        notifyButton.className = 'notify-button';
-                        notifyButton.textContent = 'Notificarme';
-                        notifyButton.style.backgroundColor = 'green';
-                        notifyButton.onclick = () => {
-                            showEmailDialog(date, notifyButton);
-                        };
-                        dateGroup.appendChild(notifyButton);
+                        if (hours.length === 0) {
+                            const notifyButton = document.createElement('button');
+                            notifyButton.className = 'notify-button';
+                            notifyButton.textContent = 'Notificarme';
+                            notifyButton.style.backgroundColor = 'green';
+                            notifyButton.onclick = () => {
+                                showEmailDialog(date, notifyButton);
+                            };
+                            dateGroup.appendChild(notifyButton);
+                        }
 
                         resultsDiv.appendChild(dateGroup);
                     }
