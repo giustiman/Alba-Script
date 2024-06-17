@@ -23,6 +23,7 @@
             <option value="tomas.valverde@gmail.com">tomas.valverde@gmail.com</option>
         </select>
         <button id="selectEmailButton">Seleccionar</button>
+        <button class="close-button" onclick="closeEmailDialog()">Cerrar</button>
     </div>
 
     <script>
@@ -83,6 +84,10 @@
             currentDate = date;
             currentNotifyButton = notifyButton;
             document.getElementById('emailDialog').style.display = 'block';
+        }
+
+        function closeEmailDialog() {
+            document.getElementById('emailDialog').style.display = 'none';
         }
 
         document.getElementById('selectEmailButton').onclick = () => {
